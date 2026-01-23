@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('fecha');
             $table->string('address',80)->nullable();
             $table->string('url')->nullable();
-            $table->boolean('control')->defauld(false);
+            $table->boolean('control')->default(false);
             $table->timestamps();
         });
        

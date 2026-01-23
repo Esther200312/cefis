@@ -8,12 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\Contracts\OAuthenticatable;
 use Laravel\Passport\HasApiTokens;
+use Silber\Bouncer\Database\HasRolesAndAbilities;
 
 
 class User extends Authenticatable implements OAuthenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-      use HasApiTokens, HasFactory, Notifiable;
+      use HasApiTokens, HasFactory, Notifiable, HasRolesAndAbilities;
     /**
      * Indicates if the model should be timestamped.
      *
