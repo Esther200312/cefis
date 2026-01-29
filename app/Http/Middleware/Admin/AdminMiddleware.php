@@ -17,7 +17,7 @@ class AdminMiddleware
     {
         $user = $request->user();
         if($user->isAn('admin')){
-            return $next($request);
+           return $next($request);
         }
         return redirect()->route('logout');
     }
