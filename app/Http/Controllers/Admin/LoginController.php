@@ -14,14 +14,10 @@ class LoginController extends Controller
     public function login(LoginRequest $request)
     {
         $user = User::where('email', $request->email)->first();
-        if ($user->isAn('admin')) {
-            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-                $request->session()->regenerate();
-                return redirect()->route('dashboard');
-            }
-            return view('admin.login', ['error' => 'password incorecto']);
-        }
-        return view('admin.login', ['error' => 'Solo para administradores']);
+        if (! $user) { return back()->withErrors(['email' => 'El email no existe'])->onlyInput('email'); }
+        if (! $user->isAn('admin')) {return back()->withErrors(['email' => 'Solo para administradores'])->onlyInput('email');}
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) { $request->session()->regenerate();return redirect()->route('dashboard'); }
+        return back()->withErrors([ 'password' => 'La contraseña es incorrecta' ])->onlyInput('email');
     }
 
     public function getLogin()
@@ -32,9 +28,9 @@ class LoginController extends Controller
     {
         // 2. Cerrar sesión en el guard
         Auth::logout();
-         // 3. Invalidar la sesión del usuario
+        // 3. Invalidar la sesión del usuario
         $request->session->invalidate();
-         // 4. Regenerarel token CSRF para evitar ataques
+        // 4. Regenerarel token CSRF para evitar ataques
         $request->session()->regenerateToken();
         return redirect()->route('login');
     }
