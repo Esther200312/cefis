@@ -18,17 +18,18 @@
              alt="Logo UNCP" 
              class="h-20 w-auto drop-shadow-md"
              onerror="this.style.display='none'">
-
+      
         <div class="text-center">
-            <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg">
+            <h1 class="text-3xl md:text-2xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg">
                 Administración <br class="hidden md:block" /> 
-                <span class="text-2xl md:text-4xl font-bold">de Certificados</span>
+                <span class="text-2xl md:text-1.5xl font-bold">de Certificados</span>
             </h1>
             
-            <p class="mt-2 text-xl md:text-2xl font-bold text-[#bf9b30] uppercase tracking-[0.3em] drop-shadow-sm">
+            <p class="mt-2 text-xl md:text-1.3xl font-bold text-[#bf9b30] uppercase tracking-[0.3em] drop-shadow-sm">
                 FIS - UNCP
             </p>
         </div>
+       
     </div>
     @auth
     <div class="absolute top-6 right-6 z-50">

@@ -5,7 +5,7 @@
     
     <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-[#bf9b30] flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-            <h1 class="text-2xl md:text-3xl font-black text-[#003366] uppercase tracking-tight">
+            <h1 class="text-2xl md:text-2xl font-black text-[#003366] uppercase tracking-tight">
                 Certificados del Evento
             </h1>
             <p class="text-[#bf9b30] font-bold text-lg uppercase mt-1">

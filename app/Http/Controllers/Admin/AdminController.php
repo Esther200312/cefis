@@ -52,7 +52,8 @@ class AdminController extends Controller
             'ponentes' => $ponentes,
             'asistentes' => $asistentes,
             'preregistrados' => $preregistrados,
-            'evento_id' => $evento_id
+            'evento_id' => $evento_id,
+            'ocultar_titulo' => true
         ]);
     }
 
@@ -91,7 +92,10 @@ class AdminController extends Controller
     public function getAddOrganizador($evento_id)
     {
         $users = User::select('id', 'paternal_surname', 'maternal_surname', 'name')->get();
-        return view('admin.add_organizador', ['users' => $users]);
+        return view('admin.add_organizador', [
+            'users' => $users,
+            'evento_id' => $evento_id
+            ]);
     }
 
     public function postAddOrganizador(AddOrganizadorRequest $request, $evento_id)
@@ -142,7 +146,8 @@ class AdminController extends Controller
             'asistentes' => $asistentes,
             'preregistrados' => $preregistrados,
             'evento_id' => $evento_id,
-            'certificados' => $certificados
+            'certificados' => $certificados,
+            'ocultar_titulo' => true
         ]);
     }
 
@@ -218,8 +223,6 @@ class AdminController extends Controller
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
-
-    // --- NUEVAS FUNCIONES PARA AGREGAR ---
     
     public function getAddAsistente($evento_id)
     {
@@ -230,13 +233,12 @@ class AdminController extends Controller
     public function postAddAsistente(Request $request, $evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
-        $usuario_id = (int)$request->asistente;
-        
-        $existe = $evento->asistentes()->where('user_id', $usuario_id)->exists();
-        
-        if (!$existe) {
-             $evento->asistentes()->attach($usuario_id, ['certificado_creado' => false]);
-        }
+        $evento->asistentes()->syncWithoutDetaching([
+            $request->asistente => [
+                'tipo_id' => 2, 
+                'certificado_creado' => false
+            ]
+        ]);
         
         return redirect()->route('evento', ['evento_id' => $evento_id]);
     }
@@ -250,13 +252,12 @@ class AdminController extends Controller
     public function postAddPreregistrado(Request $request, $evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
-        $usuario_id = (int)$request->preregistrado;
-        
-        $existe = $evento->pre_registrados()->where('user_id', $usuario_id)->exists();
-
-        if (!$existe) {
-             $evento->pre_registrados()->attach($usuario_id);
-        }
+        $evento->pre_registrados()->syncWithoutDetaching([
+            $request->preregistrado => [
+                'tipo_id' => 1, 
+                'certificado_creado' => false
+            ]
+        ]);
         
         return redirect()->route('evento', ['evento_id' => $evento_id]);
     }
@@ -312,5 +313,35 @@ class AdminController extends Controller
         $evento = Evento::findOrFail($evento_id);
         $organizadores = $evento->organizadores()->select('paternal_surname','maternal_surname','name','email')->get();
         return Excel::download(new OrganizadoresExport($organizadores), 'organizadores.xlsx');
+    }
+    public function eliminarParticipante($evento_id, $user_id, $tipo_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+
+        switch ($tipo_id) {
+            case 4: // Organizador
+                $evento->organizadores()->detach($user_id);
+                break;
+            case 3: // Ponente
+                $evento->ponentes()->detach($user_id);
+                break;
+            case 2: // Asistente
+                $evento->asistentes()->detach($user_id);
+                break;
+            case 1: // Pre-inscrito
+                $evento->pre_registrados()->detach($user_id);
+                break;
+        }
+
+        return redirect()->back()->with('success', 'Participante eliminado correctamente.');
+    }
+    public function actualizarPonencia(Request $request, $evento_id, $user_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        $evento->ponentes()->updateExistingPivot($user_id, [
+            'ponencia' => $request->ponencia_titulo
+        ]);
+        
+        return redirect()->back()->with('success', 'Ponencia actualizada.');
     }
 }

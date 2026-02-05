@@ -31,6 +31,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/certificados/ponentes', [AdminController::class, "generarCertificadoPonentes"])->name('generar_ponentes');
             Route::get('/certificados/asistentes', [AdminController::class, 'generarCertificadoAsistentes'])->name('generar_asistentes');
             Route::get('/certificados/preregistrados', [AdminController::class, 'generarCertificadoPreregistrados'])->name('generar_preregistrados');
+            Route::get('/eliminar-participante/{user_id}/{tipo_id}', [AdminController::class, "eliminarParticipante"])->name('eliminar-participante');
+            Route::post('/actualizar-ponencia/{user_id}', [AdminController::class, "actualizarPonencia"])->name('actualizar-ponencia');
         });
     });
 });
