@@ -131,7 +131,7 @@ class AdminController extends Controller
         $evento = Evento::findOrfail($evento_id);
         $organizadores = $evento->organizadores()->withPivot('certificado_creado')->get();
         $ponentes = $evento->ponentes()->withPivot('ponencia', 'certificado_creado')->get();
-        $asistentes = $evento->asistentes()->withPivot('certificado_creado')->get();
+        $asistentes = $evento->asistentes; 
         $preregistrados = $evento->pre_registrados;
         $certificados = $evento->certificados;
 
@@ -175,27 +175,39 @@ class AdminController extends Controller
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
-    
+
     public function generarCertificadoAsistentes($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
-        $asistentes = $evento->asistentes()->wherePivot('certificado_creado', false)->get();
+        $asistentes = $evento->asistentes;
+        
         foreach ($asistentes as $asistente) {
-            Certificado::create([
-                'tipo_id' => 2,
-                'user_id' => $asistente->id,
-                'evento_id' => $evento_id
-            ]);
-            $evento->asistentes()->updateExistingPivot($asistente->id, ['certificado_creado' => true]);
+             $existe = Certificado::where('tipo_id', 2)
+                                  ->where('user_id', $asistente->id)
+                                  ->where('evento_id', $evento_id)
+                                  ->first();
+             if(!$existe){
+                Certificado::create([
+                    'tipo_id' => 2,
+                    'user_id' => $asistente->id,
+                    'evento_id' => $evento_id
+                ]);
+             }
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
+
     public function generarCertificadoPreregistrados($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
         $preregistrados = $evento->pre_registrados;
+        
         foreach ($preregistrados as $pre) {
-            $existe = Certificado::where('tipo_id', 1)->where('user_id', $pre->id)->where('evento_id', $evento_id)->first();
+            $existe = Certificado::where('tipo_id', 1)
+                                 ->where('user_id', $pre->id)
+                                 ->where('evento_id', $evento_id)
+                                 ->first();
+            
             if(!$existe){
                 Certificado::create([
                     'tipo_id' => 1,
@@ -206,6 +218,49 @@ class AdminController extends Controller
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
+
+    // --- NUEVAS FUNCIONES PARA AGREGAR ---
+    
+    public function getAddAsistente($evento_id)
+    {
+        $users = User::orderBy('paternal_surname')->get();
+        return view('admin.add_asistente', ['evento_id' => $evento_id, 'users' => $users]);
+    }
+
+    public function postAddAsistente(Request $request, $evento_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        $usuario_id = (int)$request->asistente;
+        
+        $existe = $evento->asistentes()->where('user_id', $usuario_id)->exists();
+        
+        if (!$existe) {
+             $evento->asistentes()->attach($usuario_id, ['certificado_creado' => false]);
+        }
+        
+        return redirect()->route('evento', ['evento_id' => $evento_id]);
+    }
+
+    public function getAddPreregistrado($evento_id)
+    {
+        $users = User::orderBy('paternal_surname')->get();
+        return view('admin.add_preregistrado', ['evento_id' => $evento_id, 'users' => $users]);
+    }
+
+    public function postAddPreregistrado(Request $request, $evento_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        $usuario_id = (int)$request->preregistrado;
+        
+        $existe = $evento->pre_registrados()->where('user_id', $usuario_id)->exists();
+
+        if (!$existe) {
+             $evento->pre_registrados()->attach($usuario_id);
+        }
+        
+        return redirect()->route('evento', ['evento_id' => $evento_id]);
+    }
+
     public function documento($certificado_id)
     {
         $certificado = Certificado::findOrFail($certificado_id);
@@ -215,8 +270,13 @@ class AdminController extends Controller
         $fecha = Carbon::parse($evento->fecha);
         $meses = ["", 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',];
         $dia = $fecha->day < 10 ? "0" . $fecha->day : $fecha->day;
-        $ruta = storage_path('app/private/certificados/' . $evento->certificado_base);
-        $base64 = "data:image/png;base64," . base64_encode(file_get_contents($ruta));
+        
+        if($evento->certificado_base && file_exists(storage_path('app/private/certificados/' . $evento->certificado_base))){
+            $ruta = storage_path('app/private/certificados/' . $evento->certificado_base);
+            $base64 = "data:image/png;base64," . base64_encode(file_get_contents($ruta));
+        } else {
+            $base64 = null; 
+        }
         
         $url_certificado= route('documento', ['certificado_id' => $certificado_id]);
         $qr_code = new QrCode(
@@ -232,6 +292,7 @@ class AdminController extends Controller
         $writer = new PngWriter();
         $result = $writer->write($qr_code);
         $qr_data = $result->getDataUri();
+
         $pdf = Pdf::loadView('admin.plantillas.certificado_academico', [
             'evento' => $evento,
             'base64' => $base64,

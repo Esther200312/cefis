@@ -22,9 +22,15 @@ Route::middleware('auth')->group(function () {
             Route::get('/exportar-organizadores', [AdminController::class, "exportarOrganizadores"])->name('exportar-organizadores');
             Route::get('/add-ponente', [AdminController::class, "getAddPonente"])->name('add-ponente');
             Route::post('/add-ponente', [AdminController::class, "postAddPonente"]);
+            Route::get('/add-asistente', [AdminController::class, 'getAddAsistente'])->name('get-add-asistente');
+            Route::post('/add-asistente', [AdminController::class, 'postAddAsistente'])->name('post-add-asistente');
+            Route::get('/add-preregistrado', [AdminController::class, 'getAddPreregistrado'])->name('get-add-preregistrado');
+            Route::post('/add-preregistrado', [AdminController::class, 'postAddPreregistrado'])->name('post-add-preregistrado');
             Route::get('/certificados', [AdminController::class, "certificados"])->name('admin-certificados');
             Route::get('/certificados/organizadores', [AdminController::class, "generarCertificadoOrganizadores"])->name('generar_organizadores');
             Route::get('/certificados/ponentes', [AdminController::class, "generarCertificadoPonentes"])->name('generar_ponentes');
+            Route::get('/certificados/asistentes', [AdminController::class, 'generarCertificadoAsistentes'])->name('generar_asistentes');
+            Route::get('/certificados/preregistrados', [AdminController::class, 'generarCertificadoPreregistrados'])->name('generar_preregistrados');
         });
     });
 });
