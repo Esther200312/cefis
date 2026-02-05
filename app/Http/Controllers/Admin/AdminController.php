@@ -24,7 +24,6 @@ use Endroid\QrCode\Logo\Logo;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Writer\ValidationException;
-//exportar excel
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrganizadoresExport;
 
@@ -38,6 +37,7 @@ class AdminController extends Controller
         $eventos = Evento::orderBy('fecha', 'desc')->get();
         return view('admin.dashboard', ['eventos' => $eventos]);
     }
+
     public function evento($evento_id)
     {
         $evento = Evento::findOrfail($evento_id);
@@ -55,10 +55,12 @@ class AdminController extends Controller
             'evento_id' => $evento_id
         ]);
     }
+
     public function getAddCertificadoBase($evento_id)
     {
         return view('admin.add_certificado_base', ['evento_id' => $evento_id]);
     }
+
     public function postAddCertificadoBase(AddCertificadoBaseRequest $request, $evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
@@ -69,10 +71,12 @@ class AdminController extends Controller
         $evento->save();
         return redirect()->route('evento', ['evento_id' => $evento_id]);
     }
+
     public function getAddEvento()
     {
         return view('admin.add_evento');
     }
+
     public function postAddEvento(AddEventoRequest $request)
     {
         Evento::create([
@@ -83,7 +87,7 @@ class AdminController extends Controller
         ]);
         return redirect()->route("dashboard");
     }
-    //agregando organizador
+
     public function getAddOrganizador($evento_id)
     {
         $users = User::select('id', 'paternal_surname', 'maternal_surname', 'name')->get();
@@ -102,11 +106,13 @@ class AdminController extends Controller
         }
         return redirect()->route('evento', ['evento_id' => $evento_id]);
     }
+
     public function getAddPonente($evento_id)
     {
         $users = User::select('id', 'paternal_surname', 'maternal_surname', 'name')->get();
         return view('admin.add_ponente', ['evento_id' => $evento_id, 'users' => $users]);
     }
+
     public function postAddPonente(AddPonenteRequest $request, $evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
@@ -119,20 +125,27 @@ class AdminController extends Controller
         }
         return redirect()->route('evento', ['evento_id' => $evento_id]);
     }
+
     public function certificados($evento_id)
     {
         $evento = Evento::findOrfail($evento_id);
         $organizadores = $evento->organizadores()->withPivot('certificado_creado')->get();
         $ponentes = $evento->ponentes()->withPivot('ponencia', 'certificado_creado')->get();
+        $asistentes = $evento->asistentes()->withPivot('certificado_creado')->get();
+        $preregistrados = $evento->pre_registrados;
         $certificados = $evento->certificados;
+
         return view('admin.certificados', [
             'evento' => $evento,
             'organizadores' => $organizadores,
             'ponentes' => $ponentes,
+            'asistentes' => $asistentes,
+            'preregistrados' => $preregistrados,
             'evento_id' => $evento_id,
             'certificados' => $certificados
         ]);
     }
+
     public function generarCertificadoOrganizadores($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
@@ -147,6 +160,7 @@ class AdminController extends Controller
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
+
     public function generarCertificadoPonentes($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
@@ -161,18 +175,49 @@ class AdminController extends Controller
         }
         return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
     }
+    
+    public function generarCertificadoAsistentes($evento_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        $asistentes = $evento->asistentes()->wherePivot('certificado_creado', false)->get();
+        foreach ($asistentes as $asistente) {
+            Certificado::create([
+                'tipo_id' => 2,
+                'user_id' => $asistente->id,
+                'evento_id' => $evento_id
+            ]);
+            $evento->asistentes()->updateExistingPivot($asistente->id, ['certificado_creado' => true]);
+        }
+        return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
+    }
+    public function generarCertificadoPreregistrados($evento_id)
+    {
+        $evento = Evento::findOrFail($evento_id);
+        $preregistrados = $evento->pre_registrados;
+        foreach ($preregistrados as $pre) {
+            $existe = Certificado::where('tipo_id', 1)->where('user_id', $pre->id)->where('evento_id', $evento_id)->first();
+            if(!$existe){
+                Certificado::create([
+                    'tipo_id' => 1,
+                    'user_id' => $pre->id,
+                    'evento_id' => $evento_id
+                ]);
+            }
+        }
+        return redirect()->route('admin-certificados', ['evento_id' => $evento_id]);
+    }
     public function documento($certificado_id)
     {
         $certificado = Certificado::findOrFail($certificado_id);
         $evento = $certificado->evento;
-        $tipo  = $certificado->tipo;
+        $tipo = $certificado->tipo;
         $user = $certificado->usuario;
         $fecha = Carbon::parse($evento->fecha);
         $meses = ["", 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',];
         $dia = $fecha->day < 10 ? "0" . $fecha->day : $fecha->day;
         $ruta = storage_path('app/private/certificados/' . $evento->certificado_base);
         $base64 = "data:image/png;base64," . base64_encode(file_get_contents($ruta));
-        //Create QR Code
+        
         $url_certificado= route('documento', ['certificado_id' => $certificado_id]);
         $qr_code = new QrCode(
             data: $url_certificado,
@@ -184,7 +229,7 @@ class AdminController extends Controller
             foregroundColor: new Color(0, 0, 0),
             backgroundColor: new Color(255, 255, 255)
         );
-        $writer =  new PngWriter();
+        $writer = new PngWriter();
         $result = $writer->write($qr_code);
         $qr_data = $result->getDataUri();
         $pdf = Pdf::loadView('admin.plantillas.certificado_academico', [
@@ -198,9 +243,9 @@ class AdminController extends Controller
             'qr_data'=>$qr_data,
             'url_certificado'=>$url_certificado
         ])->setPaper('a4', 'landscape')->setOption('dpi', 120)->setOption('image_dpi', 300);
-        //return $pdf->download('certificado.pdf');
         return $pdf->stream('certificado_pdf');
     }
+
     public function exportarOrganizadores($evento_id)
     {
         $evento = Evento::findOrFail($evento_id);
