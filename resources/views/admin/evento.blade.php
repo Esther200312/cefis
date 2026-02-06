@@ -7,13 +7,6 @@
         
         <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
             
-            <a href="{{ route('dashboard') }}" class="group inline-flex items-center px-1 py-1.5 bg-transparent border border-[#003366] rounded text-[#003366] font-bold text-[10px] uppercase tracking-widest hover:bg-[#003366] hover:text-white transition-all duration-200 shadow-sm shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1.5 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                ATRÁS
-            </a>
-            
             <h1 class="text-xl sm:text-2xl font-black text-[#003366] uppercase tracking-tight leading-tight">
                 {{ $evento->name }}
             </h1>

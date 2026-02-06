@@ -13,7 +13,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [AdminController::class, "getDashboard"])->name('dashboard');
         Route::get('/add-evento', [AdminController::class, "getAddEvento"])->name('add-evento');
         Route::post('/add-evento', [AdminController::class, "postAddEvento"]);
-        Route::prefix('/evento/{evento_id}')->group(function () {
+        Route::post('/evento/renombrar/{id}', [AdminController::class, 'renombrarEvento'])->name('renombrar-evento');
+        Route::get('/evento/eliminar/{id}', [AdminController::class, 'eliminarEvento'])->name('eliminar-evento');
+         Route::prefix('/evento/{evento_id}')->group(function () {
             Route::get('/', [AdminController::class, "evento"])->name('evento');
             Route::get('/add-certificado-base', [AdminController::class, "getAddCertificadoBase"])->name('add-certificado-base');
             Route::post('/add-certificado-base', [AdminController::class, "postAddCertificadoBase"]);

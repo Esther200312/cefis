@@ -344,4 +344,20 @@ class AdminController extends Controller
         
         return redirect()->back()->with('success', 'Ponencia actualizada.');
     }
+    public function renombrarEvento(Request $request, $id)
+    {
+        $request->validate(['nombre' => 'required|string|max:255']);
+        
+        $evento = Evento::findOrFail($id);
+        $evento->name = $request->nombre;
+        $evento->save();
+
+        return redirect()->back()->with('success', 'Evento renombrado correctamente.');
+    }
+    public function eliminarEvento($id)
+    {
+        $evento = Evento::findOrFail($id);
+        $evento->delete();
+        return redirect()->back()->with('success', 'Evento eliminado correctamente.');
+    }
 }

@@ -26,12 +26,11 @@ class LoginController extends Controller
     }
     public function logout(Request $request)
     {
-        // 2. Cerrar sesión en el guard
         Auth::logout();
-        // 3. Invalidar la sesión del usuario
-        $request->session->invalidate();
-        // 4. Regenerarel token CSRF para evitar ataques
+   if ($request->hasSession()) {
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
+        }
         return redirect()->route('login');
     }
 }

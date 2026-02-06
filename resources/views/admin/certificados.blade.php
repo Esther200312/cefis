@@ -195,7 +195,6 @@
 
                     <div class="shrink-0">
                         @php $encontrado = false; @endphp
-                        {{-- ID = 1 para Pre-inscritos --}}
                         @foreach ($certificados as $certificado)
                             @if ($certificado->tipo_id == 1 && $certificado->user_id == $pre->id)
                                 <a href="{{ route('documento', ['certificado_id' => $certificado->id]) }}" target="_blank"
@@ -205,7 +204,6 @@
                                 @php $encontrado = true; @endphp
                             @endif
                         @endforeach
-
                         @if (!$encontrado)
                             <span class="inline-flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 font-bold text-[10px] uppercase px-3 py-1.5 rounded">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>

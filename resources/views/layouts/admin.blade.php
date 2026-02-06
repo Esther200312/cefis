@@ -6,12 +6,27 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>CEFIS - Administración</title>
     @vite('resources/css/app.css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
-
-<body class="w-full h-screen flex flex-col items-stretch bg-slate-50">
-    
+<body class="w-full min-h-screen flex flex-col items-stretch bg-slate-50">
 <header class="relative w-full py-6 border-b-[6px] border-[#bf9b30] shadow-2xl flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-[#003366] to-[#004e92]">
-    
+   @auth
+        @if(request()->is('evento*'))
+            @php
+                $rutaDestino = route('dashboard');
+                if(request()->is('*/certificados') || request()->segment(3)) {
+                    $id = request()->segment(2);
+                    $rutaDestino = url('evento/' . $id);
+                }
+            @endphp
+            <div class="absolute top-6 left-6 z-50 hidden md:block">
+                <a href="{{ $rutaDestino }}" 
+                   class="group flex items-center gap-3 px-5 py-2 border-2 border-[#bf9b30] text-[#bf9b30] font-bold text-sm uppercase tracking-widest rounded transition-all duration-300 hover:bg-[#bf9b30] hover:text-[#001529] hover:shadow-[0_0_15px_rgba(191,155,48,0.6)]">
+                    <span>ATRÁS</span>
+                </a>
+            </div>
+        @endif
+    @endauth
     <div class="flex flex-col md:flex-row items-center justify-center gap-6 px-4 z-10">
         
         <img src="{{ asset('img/logo.png') }}" 
@@ -20,12 +35,12 @@
              onerror="this.style.display='none'">
       
         <div class="text-center">
-            <h1 class="text-3xl md:text-2xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg">
+            <h1 class="text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg">
                 Administración <br class="hidden md:block" /> 
-                <span class="text-2xl md:text-1.5xl font-bold">de Certificados</span>
+                <span class="text-2xl md:text-4xl font-bold">de Certificados</span>
             </h1>
             
-            <p class="mt-2 text-xl md:text-1.3xl font-bold text-[#bf9b30] uppercase tracking-[0.3em] drop-shadow-sm">
+            <p class="mt-2 text-0xl md:text-2xl font-bold text-[#bf9b30] uppercase tracking-[0.3em] drop-shadow-sm">
                 FIS - UNCP
             </p>
         </div>
